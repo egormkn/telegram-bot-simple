@@ -79,6 +79,20 @@ reply rmsg = do
 replyText :: Text -> BotM ()
 replyText = reply . toReplyMessage
 
+messageToForwardMessageRequest :: SomeChatId -> Message -> ForwardMessageRequest
+messageToForwardMessageRequest someChatId Message{..} = ForwardMessageRequest
+  { forwardMessageChatId = someChatId
+  , forwardMessageFromChatId = SomeChatId $ chatId messageChat
+  , forwardMessageDisableNotification = Nothing  -- It's not clear where we should get this value
+  , forwardMessageMessageId = messageMessageId
+  }
+
+-- | Forward to a chat with a given 'SomeChatId'.
+forwardTo :: SomeChatId -> Message -> BotM ()
+forwardTo someChatId rmsg = do
+  let msg = messageToForwardMessageRequest someChatId rmsg
+  void $ liftClientM $ forwardMessage msg
+
 data EditMessage = EditMessage
   { editMessageText                  :: Text
   , editMessageParseMode             :: Maybe ParseMode
